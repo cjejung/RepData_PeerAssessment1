@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
@@ -12,7 +7,8 @@ Befotre loading the data into R we are going to set the download
 url, the name of the zip file where the data is downloaded to and the filename 
 to be loaded into R.
 
-```{r}
+
+```r
 # set the filenames and doanload locations
 fileurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
 zipname <- "activity.zip"
@@ -23,7 +19,8 @@ Then, if the file is not present in the working directory we will download it
 to the file *activity.zip*. Once downloaded, we'll unziped it (if not already
 done so) and load it into a dataset called *activities*.
 
-```{r}
+
+```r
 # download the file if not already there
 if(!file.exists(zipname)) {download.file(url = fileurl, destfile = zipname)}
 
@@ -38,16 +35,17 @@ if(!exists("activity")) activity <- read.csv(filename, stringsAsFactors = FALSE)
 
 First, we'll calculate the total number of steps taken each day by using tapply
 (ignoring the the NA's). 
-```{r}
+
+```r
 # calculate the total steps taken per day
 totalsteps <- with(subset(activity, !is.na(steps)),tapply(steps, date, sum))
-
 ```
 
 We'll make a histogram of the total number of steps taken each day. We will 
 override the default breaks to 10 (insead of 5) in order for the chart to be 
 more informative.
-```{r}
+
+```r
 # make a histogram of the steps taken per day
 hist(totalsteps, 
      breaks = 10,
@@ -58,26 +56,35 @@ hist(totalsteps,
      xaxp = c(0,22000, 11))
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
 The mean and median of the total number of steps taken per day are as follows:
 
-```{r}
+
+```r
 # print out the mean and median of totalsteps
 summary(totalsteps)[3:4]
+```
 
+```
+## Median   Mean 
+##  10760  10770
 ```
 
 ## What is the average daily activity pattern?
 
 To answer this, we'll first calculate the mean number of steps taken per 
 interval across all days (ignoring the the NA's). 
-```{r}
+
+```r
 # calculate the mean of the steps taken per interval
 meansteps <- with(subset(activity,!is.na(steps)), tapply(steps, interval, mean))
 ```
 
 Then, we'll make a time series plot showing the average number of steps taken 
 in each of the 5-minute intervals.
-```{r}
+
+```r
 # plot meansteps 
 plot(x = names(meansteps),
      y = meansteps,
@@ -91,9 +98,12 @@ plot(x = names(meansteps),
      )
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
 
 We'll get interval with the maximum number of of steps taken.
-```{r}
+
+```r
 # get the interval
 maxint <- as.numeric(names(which.max(meansteps)))
 
@@ -106,7 +116,11 @@ maxint <- paste(
 maxint
 ```
 
-The time of day during which, on average, the most number of steps are taken is `r maxint`.
+```
+## [1] "08:35"
+```
+
+The time of day during which, on average, the most number of steps are taken is 08:35.
 
 ## Imputing missing values
 
@@ -114,22 +128,34 @@ We're going to calculate and report the total number of missing values in the da
 (i.e. the total number of rows with `NA`s). 
 
 But before we do so, we'll check which columns contain NA's.
-```{r}
+
+```r
 # which coumns contain NA's
 apply(activity, 2, function(x) any(is.na(x)))
 ```
 
+```
+##    steps     date interval 
+##     TRUE    FALSE    FALSE
+```
+
 There are only NA's in the *steps* variable. Hence the total number of NA's in 
 each row is simply the number of NA's in the variable *steps*.
-```{r}
+
+```r
 # count the total number of NA's   
 sum(is.na(activity$steps))
+```
+
+```
+## [1] 2304
 ```
 
 Now, to impute the values we will replace the NA's with the mean for that 
 5-minute interval across all days.
 
-```{r}
+
+```r
 # make a copy of the dataset, where values are going to be imputed
 imputed <- activity
 
@@ -142,17 +168,22 @@ imputed[missing, 1] <- sapply(imputed[missing, 3],
 
 To confirm that everything worked, we'll check if any NA's are left in the
 imputed dataset.
-```{r}
+
+```r
 # check if there are any NA's left
 any(is.na(imputed$steps))
+```
 
+```
+## [1] FALSE
 ```
 
 
 Now, we can make a histogram of the total number of steps taken each day. To
 see what impact the imputing of the value had, we'll super-impose the 
 histograms for the original and imputed datasets.
-```{r}
+
+```r
 # compute the total steps of the imputed dataset
 totalstepsimputed <- with(imputed,tapply(steps, date, sum, rm.na = TRUE))
 
@@ -174,7 +205,16 @@ legend("topright",
        legend = c("Original data", "Imputed data"),
        border = "white",
        box.col = "white")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+
+```r
 totalstepsimputed[is.na(totalsteps)]
+```
+
+```
+## named numeric(0)
 ```
 
 Imputing the missing values seems to have replaced the days with NA's with one 
@@ -182,24 +222,45 @@ value the only which seems to be close to the mean of the total number of steps
 taken per day. To confirm that, lets look all the values of *steps taken per day*
 for which we didn't have values before.
 
-```{r}
+
+```r
 # get the new values for totalsteps which we got through imputing the data
 totalstepsimputed[!(names(totalstepsimputed) %in% names(totalsteps))]
+```
 
+```
+## 2012-10-01 2012-10-08 2012-11-01 2012-11-04 2012-11-09 2012-11-10 
+##   10767.19   10767.19   10767.19   10767.19   10767.19   10767.19 
+## 2012-11-14 2012-11-30 
+##   10767.19   10767.19
 ```
 
 So all days that had missing values now have a total of 10767.19 steps. Now, we
 will check what impact this had on our median and mean.
-```{r results = "asis"}
 
+```r
 library(xtable)
+```
+
+```
+## Warning: package 'xtable' was built under R version 3.3.1
+```
+
+```r
 avgs <- sapply(list(totalsteps,totalstepsimputed),function(x) summary(x)[3:4])
 
 colnames(avgs) <- c("Before imputing", "After imputing")
 xt <- xtable(avgs)
 print(xt, type = "html")
-
 ```
+
+<!-- html table generated in R 3.3.0 by xtable 1.8-2 package -->
+<!-- Mon Jul 11 08:35:01 2016 -->
+<table border=1>
+<tr> <th>  </th> <th> Before imputing </th> <th> After imputing </th>  </tr>
+  <tr> <td align="right"> Median </td> <td align="right"> 10760.00 </td> <td align="right"> 10770.00 </td> </tr>
+  <tr> <td align="right"> Mean </td> <td align="right"> 10770.00 </td> <td align="right"> 10770.00 </td> </tr>
+   </table>
 
 After imputing the data the mean has not changed - but the median increased
 and is now equal to the mean.
@@ -209,7 +270,8 @@ and is now equal to the mean.
 
 Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
-```{r}
+
+```r
 # create a flag for weekday (1) and weekend (2)
 imputed$daytype <- 1
 isweekend <- weekdays(as.Date(imputed$date)) %in% c("Saturday","Sunday")
@@ -222,7 +284,8 @@ levels(imputed$daytype) <- c("weekday", "weekend")
 
 Next, we'll compute the average number of steps taken by 5 minute
 interval, averaged across all weekday days or weekend days.
-```{r}
+
+```r
 meansteps2 <- with(imputed, aggregate(x = list(steps = steps),
                                       by= list(interval = interval, 
                                                daytype = daytype),
@@ -231,11 +294,13 @@ meansteps2 <- with(imputed, aggregate(x = list(steps = steps),
 
 Finally, we can make the panel plot containing the time series plot for the 
 weekend and weekday averages by interval.
-```{r}
+
+```r
 library(lattice) 
 with(meansteps2, xyplot(steps~interval|daytype, type = "l", layout = c(1,2)))
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 
 The plot seems to suggest that the activity levels by time interval for
 weekends and weekdays are different.
